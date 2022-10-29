@@ -18,16 +18,14 @@ Note: Make sure the input files are in a **CSV format** with column named '**Sen
 
 
 #### This wil classify the pre-trained word vectors and a baseline classifier:
-
--` python classify_word_vectors.py --inFilePath English_tagged.csv --inModelPath ./word2vec_models/word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300 --outFileName word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300_classification.txt --BL 1 -tags news,sport,weather,advertisement,traffic
-`
+* ` python classify_word_vectors.py --inFilePath English_tagged.csv --inModelPath ./word2vec_models/word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300 --outFileName word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300_classification.txt --BL 1 -tags news,sport,weather,advertisement,traffic`
 
 #### This wil classify only the pre-trained word vectors:
 
-- `python classify_word_vectors.py --inFilePath English_tagged.csv --inModelPath ./word2vec_models/word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300 --outFileName word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300_classification.txt -tags news,sport,weather,advertisement,traffic
+* `python classify_word_vectors.py --inFilePath English_tagged.csv --inModelPath ./word2vec_models/word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300 --outFileName word2vec_train_epochs_trained_10_English_CBOW_embedding_size_300_classification.txt -tags news,sport,weather,advertisement,traffic
 `
 
 #### Output files:
 
 Results of classified models can be found in the following directory:
-- `./Classified_models`
+* `./Classified_models`
