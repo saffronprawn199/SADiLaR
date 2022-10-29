@@ -35,7 +35,7 @@ def load_data(data_file):
     df = df[pd.notnull(df['Sentence'])]
     df = df[['Tag', 'Sentence']]
     df['Sentence'] = df['Sentence'].apply(clean_text)
-    print_df(df)
+    # print_df(df)
     return df
 
 
