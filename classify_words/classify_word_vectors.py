@@ -27,6 +27,8 @@ logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s",
 cores = multiprocessing.cpu_count()
 '''Use this when you have to little RAM to store all your data'''
 
+# Download popular NLTK dataset
+nltk.download("popular")
 
 def load_data(data_file):
     df = pd.read_csv(data_file)
@@ -50,11 +52,11 @@ def clean_text(text):
     # define regexes
     replace_by_space_re = re.compile('[/(){}[]|@,;]')
     bad_symbols_re = re.compile('[^0-9a-z #+_]')
-    stopwrds = set(stopwords.words('english'))
+    stopwords_set = set(stopwords.words('english'))
     text = text.lower()  # lowercase text
     text = replace_by_space_re.sub(' ', text)  # replace REPLACE_BY_SPACE_RE symbols by space in text
     text = bad_symbols_re.sub('', text)  # delete symbols which are in BAD_SYMBOLS_RE from text
-    text = ' '.join(word for word in text.split() if word not in stopwrds)  # delete stopwors from text
+    text = ' '.join(word for word in text.split() if word not in stopwords_set)  # delete stopwors from text
     return text
 
 
