@@ -146,7 +146,7 @@ class TrainWordVectors(object):
         print("Begin word2vec!")
         w2vModel = Word2Vec(min_count=self.min_count,
                             window=self.window,
-                            size=self.embeddingDimension,
+                            vector_size=self.embeddingDimension,
                             sg=self.sg,
                             sample=self.sample,
                             seed=self.randomState,
@@ -182,7 +182,7 @@ class TrainWordVectors(object):
         print("Begin FastText!")
         ftModel = FT_gensim(min_count=self.min_count,
                             window=self.window,
-                            size=self.embeddingDimension,
+                            vector_size=self.embeddingDimension,
                             sg=self.sg,
                             sample=self.sample,
                             seed=self.randomState,
