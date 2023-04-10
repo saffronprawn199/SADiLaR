@@ -24,13 +24,12 @@ for train_word_vectors.py
 
 ### This will train word vectors for fastText using SG:
 
-* ` python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --typeEmbedding fastText`
+* `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --typeEmbedding fastText`
 
     **OR**
 
 
-* ` python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --CBOW 0 --typeEmbedding fastText
-Zulu_output_clean`
+* `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --CBOW 0 --typeEmbedding fastText`
 
 ### This will train word vectors for fastText using CBOW:
 
