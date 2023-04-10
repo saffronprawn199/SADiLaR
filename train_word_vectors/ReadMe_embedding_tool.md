@@ -8,7 +8,7 @@ for train_word_vectors.py
 
 **Note:** These dependencies can be installed using pip python package manager.
 
-## Example of how program is used:
+## Example of how the program is used:
 
 #### To find what kind of arguments the program takes type:
 * `python train_word_vectors.py --help`
@@ -18,11 +18,11 @@ for train_word_vectors.py
 ## Example of how to use:
 
 
-### This wil train word vectors for both fastText and word2vec using CBOW and SG: 
+### This will train word vectors for both fastText and word2vec using CBOW and SG: 
 
 * `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --SG 1 --typeEmbedding word2vec fastText`
 
-### This wil train word vectors for fastText using SG:
+### This will train word vectors for fastText using SG:
 
 * ` python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --typeEmbedding fastText`
 
@@ -32,7 +32,7 @@ for train_word_vectors.py
 * ` python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --CBOW 0 --typeEmbedding fastText
 Zulu_output_clean`
 
-### This wil train word vectors for fastText using CBOW:
+### This will train word vectors for fastText using CBOW:
 
 * `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --SG 0 --typeEmbedding word2vec 
 `
@@ -42,7 +42,7 @@ Zulu_output_clean`
 * `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --typeEmbedding word2vec
 `
 
-### Also use to show more options:
+### Also use **"--help"** to show more options:
 
 * `python train_word_vectors.py --help`
 
