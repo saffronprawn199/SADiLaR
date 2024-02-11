@@ -1,0 +1,11 @@
+./visualise_embedding/embedding_models/*
+./visualise_embedding/fastText/*
+./visualise_embedding/word2vec/*
+./venv/
+./Data/
+./classify_words/embedding_models/
+./Embeddings models/
+./train_word_vectors/fastText_models/
+./train_word_vectors/word2vec_models/
+
+
