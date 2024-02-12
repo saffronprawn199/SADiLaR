@@ -1,0 +1,42 @@
+Baseline classification model:
+accuracy 0.8903182125930941
+               precision    recall  f1-score   support
+
+         news       0.87      0.83      0.85      1046
+        sport       0.92      0.93      0.92      4496
+      weather       0.89      0.91      0.90      3478
+advertisement       0.82      0.77      0.79       750
+      traffic       0.84      0.72      0.77       569
+
+     accuracy                           0.89     10339
+    macro avg       0.87      0.83      0.85     10339
+ weighted avg       0.89      0.89      0.89     10339
+
+Baseline classification model:
+accuracy 0.8903182125930941
+               precision    recall  f1-score   support
+
+         news       0.87      0.83      0.85      1046
+        sport       0.92      0.93      0.92      4496
+      weather       0.89      0.91      0.90      3478
+advertisement       0.82      0.77      0.79       750
+      traffic       0.84      0.72      0.77       569
+
+     accuracy                           0.89     10339
+    macro avg       0.87      0.83      0.85     10339
+ weighted avg       0.89      0.89      0.89     10339
+
+Classification model using W2V:
+accuracy 0.4348583035109779
+               precision    recall  f1-score   support
+
+         news       0.00      0.00      0.00      1046
+        sport       0.43      1.00      0.61      4496
+      weather       0.00      0.00      0.00      3478
+advertisement       0.00      0.00      0.00       750
+      traffic       0.00      0.00      0.00       569
+
+     accuracy                           0.43     10339
+    macro avg       0.09      0.20      0.12     10339
+ weighted avg       0.19      0.43      0.26     10339
+
