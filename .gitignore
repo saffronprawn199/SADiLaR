@@ -11,7 +11,6 @@ embedding_visualisation/embedding_models/*
 embedding_visualisation/fastText/*
 embedding_visualisation/word2vec/*
 embedding_visualisation/Visualisation/*
-./venv/*
 data/*
 .idea/*
 word_classification/embedding_models/
@@ -23,4 +22,6 @@ word_vector_training/.ipynb_checkpoints/*\
 app/fastText_models/*
 app/pretrained_embeddings/*
 app/word2vec_models/*
+.idea/SADiLaR.iml
 
+/venv/
