@@ -13,10 +13,12 @@ embedding_visualisation/word2vec/*
 embedding_visualisation/Visualisation/*
 ./venv/*
 data/*
+
 word_classification/embedding_models/
 embedding_models/
 word_vector_training/fastText_models/*
 word_vector_training/word2vec_models/*
+word_vector_training/__init__.py
 word_vector_training/.ipynb_checkpoints/*\
 app/fastText_models/*
 app/pretrained_embeddings/*

@@ -122,6 +122,7 @@ plt.style.use('ggplot')
 #     plt.savefig('word_scatter.png')
 #     plt.savefig('word_scatter.eps', format='eps')
 
+
 def get_word_vectors(word_vectors, word_list):
     return [np.array(word_vectors.get_vector(word, norm=True)) for word in word_list]
 
@@ -184,17 +185,26 @@ def tsnescatterplot(word_embedding_model_path, outputfile_path, words):
     color_pallet_cyclic_iterator = cycle(color_pallet)
 
     for i in range(len(word_labels)):
-        custom.append(Line2D([], [], marker='.', color=next(color_pallet_cyclic_iterator), linestyle='None', markersize=8))
+        custom.append(Line2D([], [], marker='.',
+                             color=next(color_pallet_cyclic_iterator),
+                             linestyle='None', markersize=8))
 
 
-    legend = plt.legend(custom, word_labels, loc='lower left', title="Words", fontsize=12)
+    legend = plt.legend(custom,
+                        word_labels,
+                        loc='lower left',
+                        title="Words",
+                        fontsize=12)
 
     plt.setp(legend.get_title(), fontsize=24)
 
     # Annotations
     for line in range(df.shape[0]):
         p1.text(df["x"][line], df['y'][line], ' ' + df["words"][line].title(),
-                horizontalalignment='left', verticalalignment='bottom', color=df['color'][line], fontsize=10)
+                horizontalalignment='left',
+                verticalalignment='bottom',
+                color=df['color'][line],
+                fontsize=10)
 
     # Axis and title setup
     plt.xlim(Y[:, 0].min(), Y[:, 0].max())
@@ -369,8 +379,6 @@ if __name__ == '__main__':
     if args.two_D and not args.three_D:
         # transform_2d(emb, wrds, out, args.random_state) #['pyn', 'politiek', 'verslawing', 'nuus', 'kar', 'kultuur', 'bakkie', 'sport', 'pasta', 'kos', 'emosies'])
         tsnescatterplot(model, args.outFileName, ['pain', 'politics', 'addiction', 'news', 'car', 'culture', 'bakkie', 'sport', 'pasta', 'food', 'emotions', 'disney','south_africa','radio'])#['ubuhlungu', 'ipolitiki', 'umlutha', 'izindaba','imoto', 'isiko', 'iveni', 'ezemidlalo', 'ukudla', 'imizwa'])#['pain', 'politics', 'addiction', 'news', 'car', 'culture', 'bakkie', 'sport', 'pasta', 'food', 'emotions'])#['ubuhlungu', 'ipolitiki', 'umlutha', 'izindaba','imoto', 'isiko', 'iveni', 'ezemidlalo','i-pasta', 'ukudla', 'imizwa'])#['ubuhlungu', 'ipolitiki', 'umlutha', 'izindaba','imoto', 'isiko', 'iveni', 'ezemidlalo', 'ukudla', 'imizwa'])#['pain', 'politics', 'addiction', 'news', 'car', 'culture', 'bakkie', 'sport', 'pasta', 'food', 'emotions'])#['ubuhlungu', 'ipolitiki', 'umlutha', 'izindaba','imoto', 'isiko', 'iveni', 'ezemidlalo','i-pasta', 'ukudla', 'imizwa'])#['pyn', 'politiek', 'verslawing', 'nuus', 'kar', 'kultuur', 'bakkie', 'sport', 'pasta', 'kos', 'emosies'])
-
-
     elif args.three_D and not args.two_D:
         transform_3d(emb, out, args.random_state)
     elif args.two_D and args.three_D:
