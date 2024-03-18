@@ -13,7 +13,7 @@ embedding_visualisation/word2vec/*
 embedding_visualisation/Visualisation/*
 ./venv/*
 data/*
-
+.idea/*
 word_classification/embedding_models/
 embedding_models/
 word_vector_training/fastText_models/*
