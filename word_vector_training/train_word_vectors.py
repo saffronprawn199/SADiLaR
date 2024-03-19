@@ -16,41 +16,45 @@ import streamlit as st
 os.system("taskset -p 0xff %d" % os.getpid())
 # logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
-logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s",
-                    datefmt='%H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(
+    format="%(levelname)s - %(asctime)s: %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.INFO,
+)
 logger = logging.getLogger(__name__)
 
 cores = multiprocessing.cpu_count()
 
 
 class SentencesIterator(object):
-    '''Use this when you have too little RAM to store all your data'''
+    """Use this when you have too little RAM to store all your data"""
+
     def __init__(self, df):
         self.df = df
 
     def __iter__(self):
         # Ensure 'Sentences' column exists to avoid KeyError
-        if 'Sentences' not in self.df.columns:
+        if "Sentences" not in self.df.columns:
             logger.error("DataFrame does not contain 'Sentences' column.")
             raise ValueError("DataFrame does not contain 'Sentences' column.")
 
         # Drop NaN values and ensure all entries are strings
-        self.df['Sentences'] = self.df['Sentences'].dropna().astype(str)
+        self.df["Sentences"] = self.df["Sentences"].dropna().astype(str)
 
-        for row in self.df['Sentences']:
+        for row in self.df["Sentences"]:
             try:
                 # Split the sentence into words and filter out empty or whitespace-only strings
                 sentence_stream = [word for word in row.split() if word.strip()]
             except Exception as e:
                 # Log the exception message for better debugging
-                logger.info(f'Error processing row: {e}')
+                logger.info(f"Error processing row: {e}")
                 raise
             yield sentence_stream
 
 
 class EpochLogger(CallbackAny2Vec):
-    '''Callback to log information about training'''
+    """Callback to log information about training"""
+
     def __init__(self, epochs, my_bar):
         self.epoch = 0
         self.epochs = epochs
@@ -59,20 +63,24 @@ class EpochLogger(CallbackAny2Vec):
     def on_epoch_end(self, model):
         logger.info("Epoch #{} end".format(self.epoch))
         self.epoch += 1
-        st.session_state["epoch_progress"] = int(self.epoch/self.epochs * 100)
+        st.session_state["epoch_progress"] = int(self.epoch / self.epochs * 100)
 
-        self.my_bar.progress(st.session_state["epoch_progress"],  text=f"Epoch {self.epoch}")
+        self.my_bar.progress(
+            st.session_state["epoch_progress"], text=f"Epoch {self.epoch}"
+        )
 
 
 class TrainWordVectors(object):
 
-    def __init__(self,
-                 file_location,
-                 name,
-                 use_iterator,
-                 use_pretrained_path=None,
-                 use_pretrained_binary_model=False,
-                 use_streamlit=False):
+    def __init__(
+        self,
+        file_location,
+        name,
+        use_iterator,
+        use_pretrained_path=None,
+        use_pretrained_binary_model=False,
+        use_streamlit=False,
+    ):
 
         self.name = name
         self.use_iterator = use_iterator
@@ -99,18 +107,20 @@ class TrainWordVectors(object):
         # Load data
         self.df = pd.read_csv(file_location)
 
-    def set_embedding_model_hyperparameters(self,
-                                            embedding_dimension,
-                                            epochs,
-                                            sg,
-                                            window_size,
-                                            min_count,
-                                            sub_sampling,
-                                            alpha,
-                                            min_alpha,
-                                            negative_sampling,
-                                            random_state,
-                                            word_vector):
+    def set_embedding_model_hyperparameters(
+        self,
+        embedding_dimension,
+        epochs,
+        sg,
+        window_size,
+        min_count,
+        sub_sampling,
+        alpha,
+        min_alpha,
+        negative_sampling,
+        random_state,
+        word_vector,
+    ):
 
         self.type_embedding = word_vector
         self.sg = sg
@@ -124,65 +134,87 @@ class TrainWordVectors(object):
         self.min_alpha = min_alpha
         self.negative = negative_sampling
 
-    def train_word_vector(self,
-                            epochs,
-                            window_size,
-                            min_count,
-                            sub_sampling,
-                            alpha,
-                            min_alpha,
-                            negative_sampling,
-                            random_state,
-                            word_vector,
-                            embedding_dimension,
-                            sg):
+    def train_word_vector(
+        self,
+        epochs,
+        window_size,
+        min_count,
+        sub_sampling,
+        alpha,
+        min_alpha,
+        negative_sampling,
+        random_state,
+        word_vector,
+        embedding_dimension,
+        sg,
+    ):
 
-        self.set_embedding_model_hyperparameters(embedding_dimension,
-                                                 epochs,
-                                                 sg,
-                                                 window_size,
-                                                 min_count,
-                                                 sub_sampling,
-                                                 alpha,
-                                                 min_alpha,
-                                                 negative_sampling,
-                                                 random_state,
-                                                 word_vector)
+        self.set_embedding_model_hyperparameters(
+            embedding_dimension,
+            epochs,
+            sg,
+            window_size,
+            min_count,
+            sub_sampling,
+            alpha,
+            min_alpha,
+            negative_sampling,
+            random_state,
+            word_vector,
+        )
 
-        word2vec_model_path = './word2vec_models/'
-        fastText_model_path = './fastText_models/'
+        word2vec_model_path = "./word2vec_models/"
+        fastText_model_path = "./fastText_models/"
 
         os.makedirs(word2vec_model_path, exist_ok=True)
         os.makedirs(fastText_model_path, exist_ok=True)
 
         if self.sg:
-            emb_method = 'SG'
+            emb_method = "SG"
         else:
-            emb_method = 'CBOW'
+            emb_method = "CBOW"
 
-        if self.type_embedding in 'fastText':
+        if self.type_embedding in "fastText":
             model_path = fastText_model_path
 
             # Directory paths and file-names
-            wordvec_model_name = 'fastText_train' + "_epochs_trained_" + str(self.epochs)
+            wordvec_model_name = (
+                "fastText_train" + "_epochs_trained_" + str(self.epochs)
+            )
 
-            name_embedding = wordvec_model_name + '_' + self.name + '_' + emb_method + '_embedding_size_' \
-                             + str(self.embedding_dimension)
+            name_embedding = (
+                wordvec_model_name
+                + "_"
+                + self.name
+                + "_"
+                + emb_method
+                + "_embedding_size_"
+                + str(self.embedding_dimension)
+            )
             # name_embedding = self.name
 
             # Create directory
             if not os.path.isdir(model_path):
-                logger.info("Directory ", model_path, "Created ")
+                logger.info(f"Directory {model_path} Created ")
             else:
-                logger.info("Directory ", model_path, "Already Exists ")
+                logger.info(f"Directory {model_path} Already Exists ")
 
             self.train_fastText(model_path, name_embedding)
-        elif self.type_embedding in 'word2vec':
+        elif self.type_embedding in "word2vec":
             model_path = word2vec_model_path
             # Directory paths and file-names
-            wordvec_model_name = 'word2vec_train' + "_epochs_trained_" + str(self.epochs)
-            name_embedding = wordvec_model_name + '_' + self.name + '_' + emb_method + '_embedding_size_' \
-                             + str(self.embedding_dimension)
+            wordvec_model_name = (
+                "word2vec_train" + "_epochs_trained_" + str(self.epochs)
+            )
+            name_embedding = (
+                wordvec_model_name
+                + "_"
+                + self.name
+                + "_"
+                + emb_method
+                + "_embedding_size_"
+                + str(self.embedding_dimension)
+            )
             # name_embedding = self.name
 
             # Create directory
@@ -201,24 +233,32 @@ class TrainWordVectors(object):
         logger.info("Build vocabulary")
         # Build the vocabulary
         if self.use_streamlit:
-            model.build_vocab(stqdm(sentences, desc="Build Dictionary"), progress_per=10000, update=update)
+            model.build_vocab(
+                stqdm(sentences, desc="Build Dictionary"),
+                progress_per=10000,
+                update=update,
+            )
         else:
             model.build_vocab(sentences, progress_per=10000, update=update)
-        logger.info('Vocabulary done building!')
+        logger.info("Vocabulary done building!")
 
     def save_model(self, model, model_path, model_name, start_time):
         save_path = os.path.join(model_path, "{}".format(model_name))
         os.makedirs(save_path)
-        model.save(save_path + '/' + model_name)
+        model.save(save_path + "/" + model_name)
         # logger.info("Epoch saved: {} \n Start next epoch ... ".format(self.epochs))
-        logger.info('Time to train the model: {} minutes'.format(round((time() - start_time) / 60, 2)))
+        logger.info(
+            "Time to train the model: {} minutes".format(
+                round((time() - start_time) / 60, 2)
+            )
+        )
 
     @staticmethod
     def sentences_func(df_train):
         # Only use this if you have enough memory to load the data
-        train_text = df_train['Sentences'].dropna().tolist()
+        train_text = df_train["Sentences"].dropna().tolist()
         train_text = [sent.split() for sent in train_text]
-        train_text = list(filter((' ').__ne__, train_text))
+        train_text = list(filter((" ").__ne__, train_text))
         return train_text
 
     def train_word2vec(self, wordvec_model_path, name_embedding):
@@ -230,7 +270,10 @@ class TrainWordVectors(object):
         else:
             sentences = SentencesIterator(self.df)
 
-        if self.use_pretrained_path is not None and not self.use_pretrained_binary_model:
+        if (
+            self.use_pretrained_path is not None
+            and not self.use_pretrained_binary_model
+        ):
             # Perform a vocabulary intersection using intersect_word2vec_format function to initialize
             # the new embeddings with the pretrained embeddings for the words that are in the pretraining vocabulary.
             # Step 1: Load the previously saved Word2Vec model
@@ -255,16 +298,18 @@ class TrainWordVectors(object):
             self.build_vocab(w2v_model, sentences, update=True)
 
         else:
-            w2v_model = Word2Vec(vector_size=self.embedding_dimension,
-                                 sg=self.sg,
-                                 min_count=self.min_count,
-                                 window=self.window,
-                                 sample=self.sample,
-                                 seed=self.random_state,
-                                 alpha=self.alpha,
-                                 min_alpha=self.min_alpha,
-                                 negative=self.negative,
-                                 workers=cores - 1)
+            w2v_model = Word2Vec(
+                vector_size=self.embedding_dimension,
+                sg=self.sg,
+                min_count=self.min_count,
+                window=self.window,
+                sample=self.sample,
+                seed=self.random_state,
+                alpha=self.alpha,
+                min_alpha=self.min_alpha,
+                negative=self.negative,
+                workers=cores - 1,
+            )
 
             # Start timer
             t = time()
@@ -272,36 +317,42 @@ class TrainWordVectors(object):
 
         if self.use_pretrained_path is not None and self.use_pretrained_binary_model:
             w2v_model.wv.vectors_lockf = np.ones(len(w2v_model.wv))
-            w2v_model.wv.intersect_word2vec_format(self.use_pretrained_path, binary=True)
+            w2v_model.wv.intersect_word2vec_format(
+                self.use_pretrained_path, binary=True
+            )
 
         if self.use_streamlit:
-            if 'epoch_progress' not in st.session_state:
-                st.session_state['epoch_progress'] = 0
+            if "epoch_progress" not in st.session_state:
+                st.session_state["epoch_progress"] = 0
 
             my_bar = st.progress(
-                st.session_state['epoch_progress'],
+                st.session_state["epoch_progress"],
                 text="Please note: The model is actively training, \
-                      even if the progress bar appears stationary. This might take a while..."
+                      even if the progress bar appears stationary. This might take a while...",
             )
 
             epoch_logger = EpochLogger(epochs=self.epochs, my_bar=my_bar)
 
             # Train word2vec model, additionally add epoch logger
-            w2v_model.train(sentences,
-                            total_examples=w2v_model.corpus_count,
-                            epochs=self.epochs,
-                            total_words=w2v_model.corpus_total_words,
-                            callbacks=[epoch_logger])
+            w2v_model.train(
+                sentences,
+                total_examples=w2v_model.corpus_count,
+                epochs=self.epochs,
+                total_words=w2v_model.corpus_total_words,
+                callbacks=[epoch_logger],
+            )
 
             # Reset session state for epoch_progress
-            st.session_state['epoch_progress'] = 0
+            st.session_state["epoch_progress"] = 0
 
         else:
             # Train word2vec model
-            w2v_model.train(sentences,
-                            total_examples=w2v_model.corpus_count,
-                            epochs=self.epochs,
-                            total_words=w2v_model.corpus_total_words)
+            w2v_model.train(
+                sentences,
+                total_examples=w2v_model.corpus_count,
+                epochs=self.epochs,
+                total_words=w2v_model.corpus_total_words,
+            )
 
         self.save_model(w2v_model, wordvec_model_path, name_embedding, t)
 
@@ -314,7 +365,10 @@ class TrainWordVectors(object):
         else:
             sentences = SentencesIterator(self.df)
 
-        if self.use_pretrained_path is not None and not self.use_pretrained_binary_model:
+        if (
+            self.use_pretrained_path is not None
+            and not self.use_pretrained_binary_model
+        ):
             # Perform a vocabulary intersection using intersect_fastText_format function to initialize
             # the new embeddings with the pretrained embeddings for the words that are in the pretraining vocabulary.
             # Step 1: Load the previously saved Word2Vec model
@@ -339,224 +393,272 @@ class TrainWordVectors(object):
             self.build_vocab(ft_model, sentences, update=True)
 
         else:
-            ft_model = FT_gensim(min_count=self.min_count,
-                                 window=self.window,
-                                 vector_size=self.embedding_dimension,
-                                 sg=self.sg,
-                                 sample=self.sample,
-                                 seed=self.random_state,
-                                 alpha=self.alpha,
-                                 min_alpha=self.min_alpha,
-                                 negative=self.negative,
-                                 workers=cores - 1)
+            ft_model = FT_gensim(
+                min_count=self.min_count,
+                window=self.window,
+                vector_size=self.embedding_dimension,
+                sg=self.sg,
+                sample=self.sample,
+                seed=self.random_state,
+                alpha=self.alpha,
+                min_alpha=self.min_alpha,
+                negative=self.negative,
+                workers=cores - 1,
+            )
 
             # Start timer
             t = time()
             self.build_vocab(ft_model, sentences)
 
         if self.use_pretrained_path is not None and self.use_pretrained_binary_model:
-            logger.error("Unfortunately the tool does not support fine-tuning pretrained binary fastText models.")
+            logger.error(
+                "Unfortunately the tool does not support fine-tuning pretrained binary fastText models."
+            )
             raise
-            # ft_model.wv.vectors_lockf = np.ones(len(ft_model.wv))
-            # ft_model.wv.intersect_fastText_format(self.use_pretrained_path, binary=True)
 
         if self.use_streamlit:
-            if 'epoch_progress' not in st.session_state:
-                st.session_state['epoch_progress'] = 0
+            if "epoch_progress" not in st.session_state:
+                st.session_state["epoch_progress"] = 0
 
             my_bar = st.progress(
-                st.session_state['epoch_progress'],
+                st.session_state["epoch_progress"],
                 text="Please note: The model is actively training, \
-                      even if the progress bar appears stationary. This might take a while..."
+                      even if the progress bar appears stationary. This might take a while...",
             )
 
             epoch_logger = EpochLogger(epochs=self.epochs, my_bar=my_bar)
 
             # Train fastText model
-            ft_model.train(sentences,
-                           epochs=self.epochs,
-                           total_examples=ft_model.corpus_count,
-                           total_words=ft_model.corpus_total_words,
-                           callbacks=[epoch_logger])
+            ft_model.train(
+                sentences,
+                epochs=self.epochs,
+                total_examples=ft_model.corpus_count,
+                total_words=ft_model.corpus_total_words,
+                callbacks=[epoch_logger],
+            )
 
             # Reset session state for epoch_progress
-            st.session_state['epoch_progress'] = 0
+            st.session_state["epoch_progress"] = 0
 
         else:
             # Train the word embedding model
-            ft_model.train(sentences,
-                           epochs=self.epochs,
-                           total_examples=ft_model.corpus_count,
-                           total_words=ft_model.corpus_total_words)
+            ft_model.train(
+                sentences,
+                epochs=self.epochs,
+                total_examples=ft_model.corpus_count,
+                total_words=ft_model.corpus_total_words,
+            )
 
         self.save_model(ft_model, fastText_model_path, name_embedding, t)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Train word2vec and fastText embeddings.')
-    requiredNamed = parser.add_argument_group('Required named arguments')
+    parser = argparse.ArgumentParser(
+        description="Train word2vec and fastText embeddings."
+    )
+    requiredNamed = parser.add_argument_group("Required named arguments")
 
-    requiredNamed.add_argument('--inFilePath',
-                               action="store",
-                               metavar='string',
-                               type=str,
-                               dest='inFilePath',
-                               help="defines the input csv file path",
-                               required=True)
+    requiredNamed.add_argument(
+        "--inFilePath",
+        action="store",
+        metavar="string",
+        type=str,
+        dest="inFilePath",
+        help="defines the input csv file path",
+        required=True,
+    )
 
-    requiredNamed.add_argument('--outFileName',
-                               action="store",
-                               metavar='string',
-                               type=str,
-                               dest='outFileName',
-                               help="specifies word embedding output file name",
-                               required=True)
+    requiredNamed.add_argument(
+        "--outFileName",
+        action="store",
+        metavar="string",
+        type=str,
+        dest="outFileName",
+        help="specifies word embedding output file name",
+        required=True,
+    )
 
-    parser.add_argument('--typeEmbedding',
-                        metavar='string',
-                        type=str,
-                        nargs="*",
-                        default='word2vec',
-                        help="defines what type of word embedding should \
-                              be trained specify either \"fastText\" \
-                              or \"word2vec\" or select both")
+    parser.add_argument(
+        "--typeEmbedding",
+        metavar="string",
+        type=str,
+        nargs="*",
+        default="word2vec",
+        help='defines what type of word embedding should \
+                              be trained specify either "fastText" \
+                              or "word2vec" or select both',
+    )
 
-    parser.add_argument('--embeddingDimension',
-                        metavar='int',
-                        type=int,
-                        default=300,
-                        help="specifies input word embedding \
-                              dimension - default dimension is 300")
+    parser.add_argument(
+        "--embeddingDimension",
+        metavar="int",
+        type=int,
+        default=300,
+        help="specifies input word embedding \
+                              dimension - default dimension is 300",
+    )
 
-    parser.add_argument('--CBOW',
-                        metavar='bool',
-                        type=bool,
-                        default=False,
-                        help="specifies that the model should be trained \
-                         using continuous bag-of-words ")
+    parser.add_argument(
+        "--CBOW",
+        metavar="bool",
+        type=bool,
+        default=False,
+        help="specifies that the model should be trained \
+                         using continuous bag-of-words ",
+    )
 
-    parser.add_argument('--SG',
-                        metavar='bool',
-                        type=bool,
-                        default=True,
-                        help="specifies that the model should be trained using skip-gram \
-                        - default dimension is skip-gram")
+    parser.add_argument(
+        "--SG",
+        metavar="bool",
+        type=bool,
+        default=True,
+        help="specifies that the model should be trained using skip-gram \
+                        - default dimension is skip-gram",
+    )
 
-    parser.add_argument('--epochs',
-                        metavar='int',
-                        type=int,
-                        default=10,
-                        help="specifies number of epochs word embeddings are \
-                         trained for - default is 10 epochs")
+    parser.add_argument(
+        "--epochs",
+        metavar="int",
+        type=int,
+        default=10,
+        help="specifies number of epochs word embeddings are \
+                         trained for - default is 10 epochs",
+    )
 
-    parser.add_argument('--randomState',
-                        metavar='int',
-                        type=int,
-                        default=40,
-                        help="specifies random seed used to initialise word embedding model, \
-                        for reproducibility - default value is 40")
+    parser.add_argument(
+        "--randomState",
+        metavar="int",
+        type=int,
+        default=40,
+        help="specifies random seed used to initialise word embedding model, \
+                        for reproducibility - default value is 40",
+    )
 
-    parser.add_argument('--minimumCount',
-                        metavar='int',
-                        type=int,
-                        default=2,
-                        help="ignores all words with total frequency lower than this \
-                         - default value is 2")
+    parser.add_argument(
+        "--minimumCount",
+        metavar="int",
+        type=int,
+        default=2,
+        help="ignores all words with total frequency lower than this \
+                         - default value is 2",
+    )
 
-    parser.add_argument('--subSampleFactor',
-                        metavar='float',
-                        type=float,
-                        default=1e-5,
-                        help="threshold for configuring which higher-frequency words \
-                        are randomly down-sampled - default value is 1e-5")
+    parser.add_argument(
+        "--subSampleFactor",
+        metavar="float",
+        type=float,
+        default=1e-5,
+        help="threshold for configuring which higher-frequency words \
+                        are randomly down-sampled - default value is 1e-5",
+    )
 
-    parser.add_argument('--learningRate',
-                        metavar='float',
-                        type=float,
-                        default=0.025,
-                        help="specifies the initial learning rate \
-                        - default value is 0.025")
+    parser.add_argument(
+        "--learningRate",
+        metavar="float",
+        type=float,
+        default=0.025,
+        help="specifies the initial learning rate \
+                        - default value is 0.025",
+    )
 
-    parser.add_argument('--minLearningRate',
-                        metavar='float',
-                        type=float,
-                        default=0.0001,
-                        help="specifies minimum learning rate the initial learning rate will \
+    parser.add_argument(
+        "--minLearningRate",
+        metavar="float",
+        type=float,
+        default=0.0001,
+        help="specifies minimum learning rate the initial learning rate will \
                         linearly drop to as training progresses \
-                        - default value is 0.0001")
+                        - default value is 0.0001",
+    )
 
-    parser.add_argument('--negativeSampling',
-                        metavar='int',
-                        type=int,
-                        default=10,
-                        help="specifies how many “noise words” should be drawn (usually between 5-20) \
-                         - default value is 5")
+    parser.add_argument(
+        "--negativeSampling",
+        metavar="int",
+        type=int,
+        default=10,
+        help="specifies how many “noise words” should be drawn (usually between 5-20) \
+                         - default value is 5",
+    )
 
-    parser.add_argument('--windowSize',
-                        metavar='int',
-                        type=int,
-                        default=5,
-                        help="maximum distance between the current and predicted word within a sentence \
-                        - default value is 5")
+    parser.add_argument(
+        "--windowSize",
+        metavar="int",
+        type=int,
+        default=5,
+        help="maximum distance between the current and predicted word within a sentence \
+                        - default value is 5",
+    )
 
-    parser.add_argument('--useIterator',
-                        metavar='bool',
-                        type=bool,
-                        default=False,
-                        help="use this option if you have limited RAM to load sentences \
-                        - default value is \"False\"")
+    parser.add_argument(
+        "--useIterator",
+        metavar="bool",
+        type=bool,
+        default=False,
+        help='use this option if you have limited RAM to load sentences \
+                        - default value is "False"',
+    )
 
-    parser.add_argument('--useStreamlit',
-                        metavar='bool',
-                        type=bool,
-                        default=False,
-                        help="activates streamlit functionality.")
+    parser.add_argument(
+        "--useStreamlit",
+        metavar="bool",
+        type=bool,
+        default=False,
+        help="activates streamlit functionality.",
+    )
 
-    parser.add_argument('--pretrainedModelPath',
-                               action="store",
-                               metavar='string',
-                               type=str,
-                               dest='pretrainedModelPath',
-                               default=None,
-                               help="specifies path to a pretrained model that could be used for further fine-tuning",
-                               required=True)
+    parser.add_argument(
+        "--pretrainedModelPath",
+        action="store",
+        metavar="string",
+        type=str,
+        dest="pretrainedModelPath",
+        default=None,
+        help="specifies path to a pretrained model that could be used for further fine-tuning",
+        required=True,
+    )
 
-    parser.add_argument('--usePretrainedBinaryModel',
-                        metavar='bool',
-                        type=bool,
-                        default=False,
-                        help="specify the pretrained model being used is loaded as a binary model.")
+    parser.add_argument(
+        "--usePretrainedBinaryModel",
+        metavar="bool",
+        type=bool,
+        default=False,
+        help="specify the pretrained model being used is loaded as a binary model.",
+    )
 
     args = parser.parse_args()
     skipGram = {}
     if args.CBOW and not args.SG:
-        skipGram['CBOW'] = 0
+        skipGram["CBOW"] = 0
     elif args.SG and not args.CBOW:
-        skipGram['SG'] = 1
+        skipGram["SG"] = 1
     elif args.CBOW and args.SG:
-        skipGram['CBOW'] = 0
-        skipGram['SG'] = 1
+        skipGram["CBOW"] = 0
+        skipGram["SG"] = 1
     elif args.CBOW is False and (args.SG is False):
-        parser.error("Select either SG or CBOW to be \"True\".")
+        parser.error('Select either SG or CBOW to be "True".')
 
-    word_vectors = TrainWordVectors(file_location=args.inFilePath,
-                                    name=args.outFileName,
-                                    use_iterator=args.useIterator,
-                                    use_pretrained_path=args.pretrainedModelPath,
-                                    use_pretrained_binary_model=args.usePretrainedBinaryModel,
-                                    use_streamlit=args.useStreamlit)
+    word_vectors = TrainWordVectors(
+        file_location=args.inFilePath,
+        name=args.outFileName,
+        use_iterator=args.useIterator,
+        use_pretrained_path=args.pretrainedModelPath,
+        use_pretrained_binary_model=args.usePretrainedBinaryModel,
+        use_streamlit=args.useStreamlit,
+    )
 
     for key, value in skipGram.items():
         for typeEmbed in args.typeEmbedding:
-            word_vectors.train_word_vector(embedding_dimension=args.embeddingDimension,
-                                           epochs=args.epochs,
-                                           sg=value,
-                                           window_size=args.windowSize,
-                                           min_count=args.minimumCount,
-                                           sub_sampling=args.subSampleFactor,
-                                           alpha=args.learningRate,
-                                           min_alpha=args.minLearningRate,
-                                           negative_sampling=args.negativeSampling,
-                                           random_state=args.randomState,
-                                           word_vector=typeEmbed)
+            word_vectors.train_word_vector(
+                embedding_dimension=args.embeddingDimension,
+                epochs=args.epochs,
+                sg=value,
+                window_size=args.windowSize,
+                min_count=args.minimumCount,
+                sub_sampling=args.subSampleFactor,
+                alpha=args.learningRate,
+                min_alpha=args.minLearningRate,
+                negative_sampling=args.negativeSampling,
+                random_state=args.randomState,
+                word_vector=typeEmbed,
+            )
