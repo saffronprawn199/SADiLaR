@@ -7,9 +7,11 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from matplotlib.lines import Line2D
 from gensim.models import Word2Vec
+from gensim.models.fasttext import FastText as FT_gensim
 import numpy as np
 from itertools import cycle
 import seaborn as sns
+import time
 import io
 
 # COLOR_PALETTE: ['blue', 'orange', 'green', 'pink', 'black', 'navy', 'indigo', 'gold']
@@ -26,7 +28,7 @@ COLOR_PALETTE = [
 
 
 def list_directories_and_check_files(path):
-    #List directories and check each for specified file types.
+    # List directories and check each for specified file types.
     # List all entries in the directory
     all_entries = os.listdir(path)
 
@@ -53,12 +55,16 @@ def list_directories_and_check_files(path):
 def model_selector(folder_path, sidebar_key="model_selector"):
     os.makedirs(folder_path, exist_ok=True)
     valid_files, valid_directories = list_directories_and_check_files(folder_path)
-    print(valid_directories)
-    selected_filename_index = st.sidebar.selectbox("Select model: ", range(len(valid_files)),
-                                             format_func=lambda x: valid_files[x], key=sidebar_key)
+    selected_filename_index = st.sidebar.selectbox(
+        "Select model: ",
+        range(len(valid_files)),
+        format_func=lambda x: valid_files[x],
+        key=sidebar_key,
+    )
 
-    selected_model_path = os.path.join(valid_directories[selected_filename_index],
-                                       valid_files[selected_filename_index])
+    selected_model_path = os.path.join(
+        valid_directories[selected_filename_index], valid_files[selected_filename_index]
+    )
     return selected_model_path
 
 
@@ -98,7 +104,9 @@ def display_model_selector():
 # select dimensionality reduction technique
 def display_dimensionality_reduction_technique():
     dimensionality_reduction_technique = ("T-SNE", "PCA")
-    selected_technique = st.sidebar.radio("Dimensionality reduction technique: ", dimensionality_reduction_technique)
+    selected_technique = st.sidebar.radio(
+        "Dimensionality reduction technique: ", dimensionality_reduction_technique
+    )
     return selected_technique
 
 
@@ -142,9 +150,8 @@ def pca_dimensionality_reduction(word_vectors, random_seed, n_components=2):
     return pca_reduce
 
 
-def get_embedding_data(model_path, word_list, number_similar_words):
-    embedding_model = Word2Vec.load(model_path)
-    wv = embedding_model.wv
+def get_embedding_data(model_path, word_list, number_similar_words, select_model_type):
+    wv = load_embedding_model(model_path, select_model_type)
     word_vector_list = get_word_vectors(wv, word_list)
     # Color of words
     key_word_color_list = []
@@ -156,7 +163,7 @@ def get_embedding_data(model_path, word_list, number_similar_words):
         key_word_color_list.append("#FF0000")
         similar_words = get_similar_words(wv, word, number_similar_words)
         set_of_similar_words.extend(similar_words)
-        print("tuple_similar_words: ", similar_words)
+        # print("tuple_similar_words: ", similar_words)
         color_list_similar_words.extend(len(similar_words) * [next(color_pallet_cycle)])
 
     # Update labels and vectors
@@ -170,13 +177,8 @@ def get_embedding_data(model_path, word_list, number_similar_words):
 
 
 def plot_dimensionality_reduction_2D(
-    tsne_reduce, word_labels, color_list,
-        word_list, plot_title, loc_legend
+    tsne_reduce, word_labels, color_list, word_list, plot_title, loc_legend
 ):
-    print("length 2.0: ", tsne_reduce[:, 0])
-    print("length 2.1: ", tsne_reduce[:, 1])
-
-    # import ipdb; ipdb.set_trace()
 
     # DataFrame for plotting
     df = pd.DataFrame(
@@ -212,12 +214,9 @@ def plot_dimensionality_reduction_2D(
     legend = plt.legend(custom, word_list, loc=loc_legend, title="Words", fontsize=12)
 
     plt.setp(legend.get_title(), fontsize=24)
-    print("Size: ", df.shape)
 
     # Annotations
     for line in range(df.shape[0]):
-        print(df["x"][line])
-        print(df["y"][line])
         p1.text(
             df["x"][line],
             df["y"][line],
@@ -244,6 +243,7 @@ def plot_dimensionality_reduction_2D(
     btn = st.download_button(
         label="Download image", data=img, file_name=fn, mime="image/png"
     )
+
 
 @st.cache_data
 def convert_img(fig):
@@ -276,7 +276,6 @@ def plot_dimensionality_reduction_3D(
     colors_plot = set(color_list)
 
     colors_for_groups = [c for c in colors_plot if c != "#FF0000"]
-    print(f"{colors_for_groups}=")
 
     fig = go.Figure()
 
@@ -344,15 +343,27 @@ def plot_dimensionality_reduction_3D(
     fn = "PLACEHOLDER_NAME.png"
 
     buf = io.BytesIO()
-    fig.write_image(buf, format='png')
+    fig.write_image(buf, format="png")
     btn = st.download_button(
         label="Download image", data=buf, file_name=fn, mime="image/png"
     )
+@st.cache_resource
+def load_embedding_model(model_path, select_model_type):
+    t = time.time()
+    if select_model_type == 'word2vec':
+        embedding_model = Word2Vec.load(model_path)
+    else:
+        embedding_model = FT_gensim.load(model_path)
+    print("Load time: ", time.time() - t)
+    wv = embedding_model.wv
+    return wv
+
+
 
 @st.cache_resource
-def check_words_vocab(model_path, word_list):
-    embedding_model = Word2Vec.load(model_path)
-    wv = embedding_model.wv
+def check_words_vocab(model_path, word_list, select_model_type):
+
+    wv = load_embedding_model(model_path, select_model_type)
     for word in word_list:
         if word not in wv.key_to_index:
             st.error(f'The word "{word}" is not in the vocabulary.')
@@ -362,155 +373,155 @@ def check_words_vocab(model_path, word_list):
 
 
 # Streamlit app layout
-# def main():
+def main():
+    select_model_type = display_model_selector()
+    model_path = "./" + select_model_type + "_models"
+    dir_exists = check_directory_exists(model_path)
 
-select_embedding_type = display_model_selector()
-model_path = "./" + select_embedding_type + "_models"
-dir_exists = check_directory_exists(model_path)
+    if dir_exists:
+        model_path_w2v = model_selector(model_path)
+        search_for = display_search()
+        if search_for[0] != "":
+            dim = display_dimensions()
+            technique = display_dimensionality_reduction_technique()
+            st.write('Please be patient, while the tool loads the embedding model and does a vocabulary check.')
+            passed_vocab_check = check_words_vocab(model_path_w2v, search_for, select_model_type)
+            search_for_copy = search_for.copy()
 
-if dir_exists:
-    model_path_w2v = model_selector(model_path)
-    search_for = display_search()
-    if search_for[0] != "":
-        dim = display_dimensions()
-        technique = display_dimensionality_reduction_technique()
-        passed_vocab_check = check_words_vocab(model_path_w2v, search_for)
-        search_for_copy = search_for.copy()
-
-        number_similar_words = st.sidebar.slider(
-            "Number of similar words around keyword: ",
-            5,
-            50,
-            1,
-            help="Number of semantically related words around keyword.",
-        )
-        tsne_perplexity = None
-        tsne_iterations = None
-        random_seed = None
-
-        plot_title = st.sidebar.text_input(label="Title of plot: ")
-
-        if technique == "T-SNE":
-            tsne_perplexity = st.sidebar.slider(
-                "Perplexity",
+            number_similar_words = st.sidebar.slider(
+                "Number of similar words around keyword: ",
                 5,
                 50,
                 1,
-                help="The perplexity is related to the number of nearest neighbors that is used in other manifold learning algorithms. \
-                      Larger datasets usually require a larger perplexity. \
-                      Consider selecting a value between 5 and 50 (e.g a good value to start with is 20). \
-                      Different values can result in significantly different results.\
-                      The perplexity must be less than the number of samples.",
+                help="Number of semantically related words around keyword.",
             )
-            tsne_iterations = st.sidebar.slider(
-                "Number of iterations",
-                250,
-                30000,
-                1,
-                help="Maximum number of iterations for the optimization (e.g. good value to start with could be 15000). \
-                      Should be at least 250.",
-            )
+            tsne_perplexity = None
+            tsne_iterations = None
+            random_seed = None
 
-            random_seed = st.sidebar.number_input(
-                "Random state",
-                min_value=0,
-                value=40,
-                help="Random seed used to initialise TSNE algorithm, for reproducibility - default value is 40",
-            )
+            plot_title = st.sidebar.text_input(label="Title of plot: ")
 
-        if passed_vocab_check:
-            if dim == "2-D":
-                loc_legend = st.sidebar.selectbox(
-                    "Select legend position: ",
-                    ["lower left", "upper left", "lower right", "upper right"],
+            if technique == "T-SNE":
+                tsne_perplexity = st.sidebar.slider(
+                    "Perplexity",
+                    5,
+                    50,
+                    1,
+                    help="The perplexity is related to the number of nearest neighbors that is used in other manifold learning algorithms. \
+                          Larger datasets usually require a larger perplexity. \
+                          Consider selecting a value between 5 and 50 (e.g a good value to start with is 20). \
+                          Different values can result in significantly different results.\
+                          The perplexity must be less than the number of samples.",
                 )
-                button = st.sidebar.button("Visualise")
-                if button:
-                    word_labels, word_vectors, color_list = get_embedding_data(
-                        model_path_w2v, search_for, number_similar_words
+                tsne_iterations = st.sidebar.slider(
+                    "Number of iterations",
+                    250,
+                    30000,
+                    1,
+                    help="Maximum number of iterations for the optimization (e.g. good value to start with could be 15000). \
+                          Should be at least 250.",
+                )
+
+                random_seed = st.sidebar.number_input(
+                    "Random state",
+                    min_value=0,
+                    value=40,
+                    help="Random seed used to initialise TSNE algorithm, for reproducibility - default value is 40",
+                )
+
+            if passed_vocab_check:
+                if dim == "2-D":
+                    loc_legend = st.sidebar.selectbox(
+                        "Select legend position: ",
+                        ["lower left", "upper left", "lower right", "upper right"],
                     )
-                    if technique == "T-SNE":
-                        tsne_reduce = tsne_dimensionality_reduction(
-                            word_vectors,
-                            random_seed,
-                            tsne_perplexity,
-                            tsne_iterations,
-                            2,
+                    button = st.sidebar.button("Visualise")
+                    if button:
+                        word_labels, word_vectors, color_list = get_embedding_data(
+                            model_path_w2v, search_for, number_similar_words, select_model_type
                         )
-                        plot_dimensionality_reduction_2D(
-                            tsne_reduce,
-                            word_labels,
-                            color_list,
-                            search_for_copy,
-                            plot_title,
-                            loc_legend,
-                        )
-                    else:
-                        pca_reduce = pca_dimensionality_reduction(
-                            word_vectors, random_seed, 2
-                        )
-                        plot_dimensionality_reduction_2D(
-                            pca_reduce,
-                            word_labels,
-                            color_list,
-                            search_for_copy,
-                            plot_title,
-                            loc_legend,
-                        )
-            else:
-                opacity = st.sidebar.slider(
-                    "Opacity: ",
-                    step=0.1,
-                    max_value=1.0,
-                    min_value=0.0,
-                    help="Opacity of plot.",
-                )
-                size_sphere = st.sidebar.slider(
-                    "Sphere size: ", 5, 20, 1, help="Size of sphere"
-                )
-                text_stuff = ("text", "no-text")
-                text_stuff = st.sidebar.radio("Turn on text: ", text_stuff)
-                add_text = ""
-                if text_stuff == "text":
-                    add_text = "text"
-                button = st.sidebar.button("Visualise")
-                if button:
-                    word_labels, word_vectors, color_list = get_embedding_data(
-                        model_path_w2v, search_for, number_similar_words
+                        if technique == "T-SNE":
+                            tsne_reduce = tsne_dimensionality_reduction(
+                                word_vectors,
+                                random_seed,
+                                tsne_perplexity,
+                                tsne_iterations,
+                                2,
+                            )
+                            plot_dimensionality_reduction_2D(
+                                tsne_reduce,
+                                word_labels,
+                                color_list,
+                                search_for_copy,
+                                plot_title,
+                                loc_legend,
+                            )
+                        else:
+                            pca_reduce = pca_dimensionality_reduction(
+                                word_vectors, random_seed, 2
+                            )
+                            plot_dimensionality_reduction_2D(
+                                pca_reduce,
+                                word_labels,
+                                color_list,
+                                search_for_copy,
+                                plot_title,
+                                loc_legend,
+                            )
+                else:
+                    opacity = st.sidebar.slider(
+                        "Opacity: ",
+                        step=0.1,
+                        max_value=1.0,
+                        min_value=0.0,
+                        help="Opacity of plot.",
                     )
-                    if technique == "T-SNE":
-                        tsne_reduce = tsne_dimensionality_reduction(
-                            word_vectors,
-                            random_seed,
-                            tsne_perplexity,
-                            tsne_iterations,
-                            3,
+                    size_sphere = st.sidebar.slider(
+                        "Sphere size: ", 5, 20, 1, help="Size of sphere"
+                    )
+                    text_stuff = ("text", "no-text")
+                    text_stuff = st.sidebar.radio("Turn on text: ", text_stuff)
+                    add_text = ""
+                    if text_stuff == "text":
+                        add_text = "text"
+                    button = st.sidebar.button("Visualise")
+                    if button:
+                        word_labels, word_vectors, color_list = get_embedding_data(
+                            model_path_w2v, search_for, number_similar_words
                         )
-                        plot_dimensionality_reduction_3D(
-                            tsne_reduce,
-                            word_labels,
-                            color_list,
-                            search_for_copy,
-                            plot_title,
-                            opacity,
-                            size_sphere,
-                            add_text,
-                        )
-                    else:
-                        pca_reduce = pca_dimensionality_reduction(
-                            word_vectors, random_seed, 3
-                        )
-                        plot_dimensionality_reduction_3D(
-                            pca_reduce,
-                            word_labels,
-                            color_list,
-                            search_for_copy,
-                            plot_title,
-                            opacity,
-                            size_sphere,
-                            add_text,
-                        )
+                        if technique == "T-SNE":
+                            tsne_reduce = tsne_dimensionality_reduction(
+                                word_vectors,
+                                random_seed,
+                                tsne_perplexity,
+                                tsne_iterations,
+                                3,
+                            )
+                            plot_dimensionality_reduction_3D(
+                                tsne_reduce,
+                                word_labels,
+                                color_list,
+                                search_for_copy,
+                                plot_title,
+                                opacity,
+                                size_sphere,
+                                add_text,
+                            )
+                        else:
+                            pca_reduce = pca_dimensionality_reduction(
+                                word_vectors, random_seed, 3
+                            )
+                            plot_dimensionality_reduction_3D(
+                                pca_reduce,
+                                word_labels,
+                                color_list,
+                                search_for_copy,
+                                plot_title,
+                                opacity,
+                                size_sphere,
+                                add_text,
+                            )
 
-#
-# if __name__ == "__main__":
-#     main()
+
+if __name__ == "__main__":
+    main()

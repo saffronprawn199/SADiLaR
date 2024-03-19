@@ -1,5 +1,6 @@
 # File: app.py
 import sys
+
 sys.path.insert(0, "../")
 import streamlit as st
 from word_vector_training.train_word_vectors import TrainWordVectors
@@ -48,16 +49,20 @@ def display_model_selector():
 
 def model_selector(folder_path, sidebar_key="model_selector"):
     filenames = os.listdir(folder_path)
-    selected_filename = st.sidebar.selectbox("Select model: ", filenames, key=sidebar_key)
+    selected_filename = st.sidebar.selectbox(
+        "Select model: ", filenames, key=sidebar_key
+    )
 
     selected_binary_file = False
     if selected_filename is not None:
-        if selected_filename.endswith('.bin'):
+        if selected_filename.endswith(".bin"):
             selected_binary_file = True
         else:
-            filenames = os.listdir(folder_path + '/' + selected_filename)
-            selected_file = [f for f in filenames if not f.endswith((".npy", ".DS_Store"))]
-            selected_filename = selected_filename + '/' + selected_file[0]
+            filenames = os.listdir(folder_path + "/" + selected_filename)
+            selected_file = [
+                f for f in filenames if not f.endswith((".npy", ".DS_Store"))
+            ]
+            selected_filename = selected_filename + "/" + selected_file[0]
 
     selected_model_path = None
     if selected_filename:
@@ -66,25 +71,31 @@ def model_selector(folder_path, sidebar_key="model_selector"):
 
 
 def finetune_existing_model():
-    os.makedirs('./pretrained_embeddings', exist_ok=True)
-    os.makedirs('./pretrained_embeddings/word2vec_models', exist_ok=True)
-    os.makedirs('./pretrained_embeddings/fastText_models', exist_ok=True)
+    os.makedirs("./pretrained_embeddings", exist_ok=True)
+    os.makedirs("./pretrained_embeddings/word2vec_models", exist_ok=True)
+    os.makedirs("./pretrained_embeddings/fastText_models", exist_ok=True)
     option_selected = display_use_pretrained_embeddings()
 
-    model_path = ''
+    model_path = ""
     pretrained_binary = False
     model_selected = None
 
-    if option_selected == 'True':
+    if option_selected == "True":
         model_selected = display_model_selector()
-        st.sidebar.info('Ensure that the model architecture (SG or CBOW) matches that of the pre-trained model. \
-                         Additionally, the embedding dimensions must be consistent with the pre-trained model.',
-                         icon="ℹ️")
+        st.sidebar.info(
+            "Ensure that the model architecture (SG or CBOW) matches that of the pre-trained model. \
+                         Additionally, the embedding dimensions must be consistent with the pre-trained model.",
+            icon="ℹ️",
+        )
 
-        if model_selected == 'word2vec':
-            model_path, pretrained_binary = model_selector('./pretrained_embeddings/word2vec_models')
+        if model_selected == "word2vec":
+            model_path, pretrained_binary = model_selector(
+                "./pretrained_embeddings/word2vec_models"
+            )
         else:
-            model_path, pretrained_binary = model_selector('./pretrained_embeddings/fastText_models')
+            model_path, pretrained_binary = model_selector(
+                "./pretrained_embeddings/fastText_models"
+            )
 
     return option_selected, model_path, pretrained_binary, model_selected
 
@@ -95,7 +106,7 @@ def sidebar_config(pretraining_selected, model_selected):
 
     hyperparameters_arguments = dict()
 
-    if pretraining_selected == 'False':
+    if pretraining_selected == "False":
         # Optional arguments
         hyperparameters_arguments["model_name"] = st.sidebar.multiselect(
             "Type of word embedding to be trained",
@@ -116,12 +127,11 @@ def sidebar_config(pretraining_selected, model_selected):
     else:
         hyperparameters_arguments["model_name"] = model_selected
 
-
         model_architecture = st.sidebar.radio(
             "Model Architecture",
             options=["CBOW", "Skip-gram"],
             index=1,  # Default to Skip-gram
-            help="Select the training algorithm: Continuous bag-of-words or Skip-gram"
+            help="Select the training algorithm: Continuous bag-of-words or Skip-gram",
         )
         # Update hyperparameters_arguments based on selection
         hyperparameters_arguments["CBOW"] = model_architecture == "CBOW"
@@ -202,9 +212,11 @@ def sidebar_config(pretraining_selected, model_selected):
     return hyperparameters_arguments
 
 
-def train_word_vectors(word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram):
+def train_word_vectors(
+    word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram
+):
 
-    if pretraining_selected == 'True':
+    if pretraining_selected == "True":
         word_vectors.train_word_vector(
             sg=list(skip_gram.values())[0],
             embedding_dimension=hyperparameters_arguments["embedding_dimension"],
@@ -222,7 +234,9 @@ def train_word_vectors(word_vectors, hyperparameters_arguments, pretraining_sele
         for key, value in skip_gram.items():
             for typeEmbed in hyperparameters_arguments["model_name"]:
                 word_vectors.train_word_vector(
-                    embedding_dimension=hyperparameters_arguments["embedding_dimension"],
+                    embedding_dimension=hyperparameters_arguments[
+                        "embedding_dimension"
+                    ],
                     epochs=hyperparameters_arguments["epochs"],
                     sg=value,
                     window_size=hyperparameters_arguments["window_size"],
@@ -236,8 +250,13 @@ def train_word_vectors(word_vectors, hyperparameters_arguments, pretraining_sele
                 )
 
 
-def setup_word_vector_training(uploaded_file, hyperparameters_arguments,
-                               pretraining_selected, pretrained_model_path, pretrained_is_binary):
+def setup_word_vector_training(
+    uploaded_file,
+    hyperparameters_arguments,
+    pretraining_selected,
+    pretrained_model_path,
+    pretrained_is_binary,
+):
 
     # Logic_for training word embeddings
     skip_gram = {}
@@ -248,39 +267,55 @@ def setup_word_vector_training(uploaded_file, hyperparameters_arguments,
     elif hyperparameters_arguments["CBOW"] and hyperparameters_arguments["SG"]:
         skip_gram["CBOW"] = 0
         skip_gram["SG"] = 1
-    elif hyperparameters_arguments["CBOW"] is False and (hyperparameters_arguments["SG"] is False):
+    elif hyperparameters_arguments["CBOW"] is False and (
+        hyperparameters_arguments["SG"] is False
+    ):
         st.error('Select either SG or CBOW to be "True".', icon="🚨")
 
-    if pretraining_selected == 'True':
+    if pretraining_selected == "True":
         word_vectors = TrainWordVectors(
             file_location=uploaded_file,
             name=st.session_state["model_name"],
             use_iterator=hyperparameters_arguments["use_iterator"],
             use_pretrained_path=pretrained_model_path,
             use_pretrained_binary_model=pretrained_is_binary,
-            use_streamlit=True
+            use_streamlit=True,
         )
-        train_word_vectors(word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram)
+        train_word_vectors(
+            word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram
+        )
     else:
         word_vectors = TrainWordVectors(
             file_location=uploaded_file,
             name=st.session_state["model_name"],
             use_iterator=hyperparameters_arguments["use_iterator"],
-            use_streamlit=True
+            use_streamlit=True,
         )
-        train_word_vectors(word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram)
+        train_word_vectors(
+            word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram
+        )
 
 
 # File upload and processing
-def upload_file_and_train_model(hyperparameters_arguments, pretraining_selected, pretrained_model_path, pretrained_is_binary):
+def upload_file_and_train_model(
+    hyperparameters_arguments,
+    pretraining_selected,
+    pretrained_model_path,
+    pretrained_is_binary,
+):
     uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
     if uploaded_file is not None:
         if uploaded_file.name.endswith(".csv"):
             submit_model_name = handle_user_input()
 
             if submit_model_name:
-                setup_word_vector_training(uploaded_file, hyperparameters_arguments, pretraining_selected,
-                                   pretrained_model_path, pretrained_is_binary)
+                setup_word_vector_training(
+                    uploaded_file,
+                    hyperparameters_arguments,
+                    pretraining_selected,
+                    pretrained_model_path,
+                    pretrained_is_binary,
+                )
                 st.write(
                     "The embedding models have been successfully trained.\
                      You may now navigate to the visualization page to explore the results. 🥳🎊🎉"
@@ -294,9 +329,16 @@ def main():
     setup_session_states()
     set_page_config()
     main_page_setup()
-    pretraining_selected, pretrained_model_path, pretrained_binary, model_selected = finetune_existing_model()
+    pretraining_selected, pretrained_model_path, pretrained_binary, model_selected = (
+        finetune_existing_model()
+    )
     hyperparameters_arguments = sidebar_config(pretraining_selected, model_selected)
-    upload_file_and_train_model(hyperparameters_arguments, pretraining_selected, pretrained_model_path, pretrained_binary)
+    upload_file_and_train_model(
+        hyperparameters_arguments,
+        pretraining_selected,
+        pretrained_model_path,
+        pretrained_binary,
+    )
 
 
 if __name__ == "__main__":
