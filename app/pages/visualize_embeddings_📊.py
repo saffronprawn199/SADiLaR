@@ -124,9 +124,6 @@ def get_similar_words(word_vectors, word, topn=15):
 def tsne_dimensionality_reduction(
     word_vectors, random_seed, tsne_perplexity, tsne_iterations, n_components=2
 ):
-
-    if random_seed or tsne_perplexity is None:
-        return
     # t-SNE reduction
     np.set_printoptions(suppress=True)
     array_of_list_of_word_vectors = np.array(word_vectors)
@@ -136,6 +133,7 @@ def tsne_dimensionality_reduction(
         perplexity=tsne_perplexity,
         n_iter=tsne_iterations,
     ).fit_transform(array_of_list_of_word_vectors)
+
     return tsne_reduce
 
 
@@ -177,14 +175,14 @@ def get_embedding_data(model_path, word_list, number_similar_words, select_model
 
 
 def plot_dimensionality_reduction_2D(
-    tsne_reduce, word_labels, color_list, word_list, plot_title, loc_legend
+    reduce, word_labels, color_list, word_list, plot_title, loc_legend
 ):
 
     # DataFrame for plotting
     df = pd.DataFrame(
         {
-            "x": tsne_reduce[:, 0],
-            "y": tsne_reduce[:, 1],
+            "x": reduce[:, 0],
+            "y": reduce[:, 1],
             "words": word_labels,
             "color": color_list,
         }
@@ -251,7 +249,7 @@ def convert_img(fig):
 
 
 def plot_dimensionality_reduction_3D(
-    tsne_reduce,
+    reduce,
     word_labels,
     color_list,
     word_list,
@@ -263,9 +261,9 @@ def plot_dimensionality_reduction_3D(
     # DataFrame for plotting
     df = pd.DataFrame(
         {
-            "x": tsne_reduce[:, 0],
-            "y": tsne_reduce[:, 1],
-            "z": tsne_reduce[
+            "x": reduce[:, 0],
+            "y": reduce[:, 1],
+            "z": reduce[
                 :, 2
             ],  # Assuming tsne_reduce now includes a third dimension for 3D plotting
             "words": word_labels,
@@ -352,12 +350,12 @@ def load_embedding_model(model_path, select_model_type):
     t = time.time()
     if select_model_type == 'word2vec':
         embedding_model = Word2Vec.load(model_path)
-    else:
+    elif select_model_type == 'fastText':
         embedding_model = FT_gensim.load(model_path)
     print("Load time: ", time.time() - t)
     wv = embedding_model.wv
+    print(f"Vocab length {len(wv)}")
     return wv
-
 
 
 @st.cache_resource
