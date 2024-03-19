@@ -360,7 +360,7 @@ def load_embedding_model(model_path, select_model_type):
 
 @st.cache_resource
 def check_words_vocab(model_path, word_list, select_model_type):
-
+    st.write('Please be patient, while the tool loads the embedding model and does a vocabulary check.')
     wv = load_embedding_model(model_path, select_model_type)
     for word in word_list:
         if word not in wv.key_to_index:
@@ -382,7 +382,7 @@ def main():
         if search_for[0] != "":
             dim = display_dimensions()
             technique = display_dimensionality_reduction_technique()
-            st.write('Please be patient, while the tool loads the embedding model and does a vocabulary check.')
+
             passed_vocab_check = check_words_vocab(model_path_w2v, search_for, select_model_type)
             search_for_copy = search_for.copy()
 
@@ -485,7 +485,7 @@ def main():
                     button = st.sidebar.button("Visualise")
                     if button:
                         word_labels, word_vectors, color_list = get_embedding_data(
-                            model_path_w2v, search_for, number_similar_words
+                            model_path_w2v, search_for, number_similar_words, select_model_type
                         )
                         if technique == "T-SNE":
                             tsne_reduce = tsne_dimensionality_reduction(
