@@ -471,7 +471,7 @@ def main():
                         "Opacity: ",
                         step=0.1,
                         max_value=1.0,
-                        min_value=0.0,
+                        min_value=0.1,
                         help="Opacity of plot.",
                     )
                     size_sphere = st.sidebar.slider(
