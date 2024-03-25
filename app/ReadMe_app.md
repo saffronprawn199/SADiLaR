@@ -56,6 +56,18 @@ You can adjust this value, for example to `4092`, if you need to upload larger f
 - **Configure Training Parameters**: Use the sidebar to select your training preferences, such as the model type (Word2Vec or fastText), training algorithm (Skip-Gram or CBOW), and other hyperparameters.
 - **Train Your Model**: After configuring the settings, click the "Train word embeddings" button to start the training process. The application will display the progress and notify you upon completion.
 
+## Folder structure created
+
+In the image below, you'll see an example depicting the creation of three new folders. 
+To fine-tune pre-trained embeddings, please place the embedding model you intend to train further into the appropriate directory. 
+For instance, if you aim to refine a word2vec model, upload it to the corresponding directory as illustrated below. 
+The folders `./app/fastText_models` and `./app/word2vec_models` will be generated automatically once an embedding model is trained using any of the provided methods.
+
+<p float="left">
+  <img src="./images/folder_structure.png" width="500" />
+</p>
+
+
 ## Customizing and Extending
 The application's Python script (`word_embedding_training_🚀.py`) is structured to be easily readable and modifiable. You can adjust the training processes, add new features, or integrate additional models by modifying the script.
 

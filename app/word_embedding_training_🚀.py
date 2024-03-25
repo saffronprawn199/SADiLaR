@@ -35,18 +35,24 @@ def handle_user_input():
     return submit
 
 
+# Presents the user with an option to choose whether to use pretrained embeddings or not.
+# The selection is made via a radio button in the Streamlit sidebar.
 def display_use_pretrained_embeddings():
     select_pretrained = ("True", "False")
     selected_option = st.sidebar.radio("Use pretrained embeddings:", select_pretrained)
     return selected_option
 
 
+# Allows the user to select the type of embedding model to use (Word2Vec or fastText).
+# The selection is made via a radio button in the Streamlit sidebar.
 def display_model_selector():
     embedding_type = ("word2vec", "fastText")
     selected_embedding = st.sidebar.radio("Embedding model: ", embedding_type)
     return selected_embedding
 
 
+# Displays a selection box for the user to select a specific model file from a given folder.
+# It handles both regular and binary file formats, adjusting the selection accordingly.
 def model_selector(folder_path, sidebar_key="model_selector"):
     filenames = os.listdir(folder_path)
     selected_filename = st.sidebar.selectbox(
@@ -211,7 +217,7 @@ def sidebar_config(pretraining_selected, model_selected):
 
     return hyperparameters_arguments
 
-
+# Train word embeddings
 def train_word_vectors(
     word_vectors, hyperparameters_arguments, pretraining_selected, skip_gram
 ):
@@ -250,6 +256,7 @@ def train_word_vectors(
                 )
 
 
+# Setup hyperparameters for word vector training
 def setup_word_vector_training(
     uploaded_file,
     hyperparameters_arguments,
