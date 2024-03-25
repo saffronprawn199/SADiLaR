@@ -13,8 +13,18 @@ from itertools import cycle
 import seaborn as sns
 import time
 import io
+import logging
 
-# COLOR_PALETTE: ['blue', 'orange', 'green', 'pink', 'black', 'navy', 'indigo', 'gold']
+logging.basicConfig(
+    format="%(levelname)s - %(asctime)s: %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.INFO,
+)
+logger = logging.getLogger(__name__)
+
+# The global variable COLOR_PALETTE works
+# as follows : ['blue', 'orange', 'green', 'pink', 'black', 'navy', 'indigo', 'gold']
+
 COLOR_PALETTE = [
     "#2874A6",
     "#E67E22",
@@ -74,6 +84,8 @@ def display_search():
     search_for = [word.replace(" ", "") for word in string_of_words.split(",")]
     return search_for
 
+def show_word_similarity_score():
+
 
 # Check if directory model exists
 def check_directory_exists(directory_path):
@@ -101,7 +113,7 @@ def display_model_selector():
     return selected_embedding
 
 
-# select dimensionality reduction technique
+# Select dimensionality reduction technique
 def display_dimensionality_reduction_technique():
     dimensionality_reduction_technique = ("T-SNE", "PCA")
     selected_technique = st.sidebar.radio(
@@ -161,7 +173,7 @@ def get_embedding_data(model_path, word_list, number_similar_words, select_model
         key_word_color_list.append("#FF0000")
         similar_words = get_similar_words(wv, word, number_similar_words)
         set_of_similar_words.extend(similar_words)
-        # print("tuple_similar_words: ", similar_words)
+        # logger.info("tuple_similar_words: ", similar_words)
         color_list_similar_words.extend(len(similar_words) * [next(color_pallet_cycle)])
 
     # Update labels and vectors
@@ -352,9 +364,9 @@ def load_embedding_model(model_path, select_model_type):
         embedding_model = Word2Vec.load(model_path)
     elif select_model_type == 'fastText':
         embedding_model = FT_gensim.load(model_path)
-    print("Load time: ", time.time() - t)
+    logger.info("Load time: ", time.time() - t)
     wv = embedding_model.wv
-    print(f"Vocab length {len(wv)}")
+    logger.info(f"Vocab length {len(wv)}")
     return wv
 
 

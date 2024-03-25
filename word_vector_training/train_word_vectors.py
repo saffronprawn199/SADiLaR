@@ -1,20 +1,18 @@
 #!/usr/bin/env python
-from gensim.models.callbacks import CallbackAny2Vec
-from gensim.models import Word2Vec
-from gensim.models.fasttext import FastText as FT_gensim
-from time import time
-from stqdm import stqdm
-import pandas as pd
 import os
 import logging
 import multiprocessing
 import argparse
 import numpy as np
 import streamlit as st
-
+import pandas as pd
+from gensim.models.callbacks import CallbackAny2Vec
+from gensim.models import Word2Vec
+from gensim.models.fasttext import FastText as FT_gensim
+from time import time
+from stqdm import stqdm
 
 os.system("taskset -p 0xff %d" % os.getpid())
-# logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 logging.basicConfig(
     format="%(levelname)s - %(asctime)s: %(message)s",
@@ -27,7 +25,18 @@ cores = multiprocessing.cpu_count()
 
 
 class SentencesIterator(object):
-    """Use this when you have too little RAM to store all your data"""
+    """
+    Iterator for reading sentences from a pandas DataFrame. This iterator is used
+    to efficiently process text data for word embedding models, particularly useful
+    when dealing with large datasets that are too big to fit into RAM.
+
+    Attributes:
+        df (pandas.DataFrame): A DataFrame containing the text data to iterate over. The DataFrame
+                               must have a 'Sentences' column with the text data.
+
+    Raises:
+        ValueError: If the DataFrame does not contain a 'Sentences' column.
+    """
 
     def __init__(self, df):
         self.df = df
@@ -53,7 +62,16 @@ class SentencesIterator(object):
 
 
 class EpochLogger(CallbackAny2Vec):
-    """Callback to log information about training"""
+    """
+    Gensim callback for logging training progress at the end of each epoch. Additionally, it
+    updates a Streamlit progress bar to visualize the training progress.
+
+    Attributes:
+        epochs (int): Total number of epochs the model will be trained for. Used to calculate
+                      the progress percentage.
+        my_bar (streamlit.Progress): A Streamlit progress bar object to be updated after each
+                                     epoch to reflect the training progress.
+    """
 
     def __init__(self, epochs, my_bar):
         self.epoch = 0
@@ -71,7 +89,36 @@ class EpochLogger(CallbackAny2Vec):
 
 
 class TrainWordVectors(object):
+    """
+        Main class for training word embedding models (Word2Vec and FastText) using gensim.
+        This class provides functionality to set model hyperparameters, build vocabularies, train
+        the models, and save the trained models to disk. It supports training from scratch as well
+        as fine-tuning pretrained models. Streamlit integration is optional for visualizing training
+        progress.
 
+        Attributes:
+            file_location (str): Path to the input CSV file containing the text data for training the model.
+            name (str): Name of the output model. Used as a part of the filename when saving the model.
+            use_iterator (bool): If True, uses an iterator to load sentences from the CSV file. Useful for
+                                 large datasets that do not fit into RAM.
+            use_pretrained_path (str, optional): Path to a pretrained model for fine-tuning. Default is None.
+            use_pretrained_binary_model (bool): If True, the pretrained model at `use_pretrained_path` is
+                                                expected to be a binary model. Default is False.
+            use_streamlit (bool): If True, integrates with Streamlit for progress visualization. Default is False.
+            type_embedding (str): Specifies the type of word embedding model ('word2vec' or 'fastText').
+            sg (int): Training algorithm: 1 for skip-gram; otherwise CBOW.
+            window (int): Maximum distance between the current and predicted word within a sentence.
+            embedding_dimension (int): Dimensionality of the word vectors.
+            epochs (int): Number of iterations (epochs) over the corpus.
+            random_state (int): Seed for the random number generator.
+            min_count (int): Ignores all words with total frequency lower than this.
+            sample (float): The threshold for configuring which higher-frequency words are randomly downsampled.
+            alpha (float): The initial learning rate.
+            min_alpha (float): Learning rate will linearly drop to `min_alpha` as training progresses.
+            negative (int): If > 0, negative sampling will be used, the int for negative specifies how many
+                            "noise words" should be drawn (usually between 5-20).
+            workers (int): Number of worker threads to train the model (default is number of CPU cores - 1).
+        """
     def __init__(
         self,
         file_location,
@@ -177,21 +224,7 @@ class TrainWordVectors(object):
         if self.type_embedding in "fastText":
             model_path = fastText_model_path
 
-            # Directory paths and file-names
-            wordvec_model_name = (
-                "fastText_train" + "_epochs_trained_" + str(self.epochs)
-            )
-
-            name_embedding = (
-                wordvec_model_name
-                + "_"
-                + self.name
-                + "_"
-                + emb_method
-                + "_embedding_size_"
-                + str(self.embedding_dimension)
-            )
-            # name_embedding = self.name
+            name_embedding = self.name
 
             # Create directory
             if not os.path.isdir(model_path):
@@ -202,20 +235,7 @@ class TrainWordVectors(object):
             self.train_fastText(model_path, name_embedding)
         elif self.type_embedding in "word2vec":
             model_path = word2vec_model_path
-            # Directory paths and file-names
-            wordvec_model_name = (
-                "word2vec_train" + "_epochs_trained_" + str(self.epochs)
-            )
-            name_embedding = (
-                wordvec_model_name
-                + "_"
-                + self.name
-                + "_"
-                + emb_method
-                + "_embedding_size_"
-                + str(self.embedding_dimension)
-            )
-            # name_embedding = self.name
+            name_embedding = self.name
 
             # Create directory
             if not os.path.isdir(model_path):
@@ -246,7 +266,6 @@ class TrainWordVectors(object):
         save_path = os.path.join(model_path, "{}".format(model_name))
         os.makedirs(save_path)
         model.save(save_path + "/" + model_name)
-        # logger.info("Epoch saved: {} \n Start next epoch ... ".format(self.epochs))
         logger.info(
             "Time to train the model: {} minutes".format(
                 round((time() - start_time) / 60, 2)

@@ -3,13 +3,13 @@ import sys
 
 sys.path.insert(0, "../")
 import streamlit as st
-from word_vector_training.train_word_vectors import TrainWordVectors
 import os
+from word_vector_training.train_word_vectors import TrainWordVectors
 
 
 # Set Streamlit page config
 def set_page_config():
-    st.set_page_config(page_title="Multi-page App", page_icon="👋")
+    st.set_page_config(page_title="Word embedding App", page_icon="👋")
 
 
 # Setup session states
@@ -21,7 +21,7 @@ def setup_session_states():
 # Main page setup
 def main_page_setup():
     st.title("Word Embedding Training Tool")
-    st.sidebar.success("Select a page above.")
+    st.sidebar.success("Select a option above.")
 
 
 # User input handling
