@@ -1,61 +1,72 @@
-# Train word embeddings using fastText and Word2Vec:
+# Training Word Embeddings with fastText and Word2Vec
 
-for train_word_vectors.py
-
-#### Dependencies:
-* gensim
-* pandas
-
-**Note:** These dependencies can be installed using pip python package manager.
-
-## Example of how program is used:
-
-#### To find what kind of arguments the program takes type:
-* `python train_word_vectors.py --help`
-
-**Note:** Make sure the input files are in a CSV format with column named 'Sentences' with a sentence string in each row.
-
-## Example of how to use:
+Enhance your natural language processing (NLP) applications with custom-trained word embeddings using the `train_word_vectors.py` script. This script facilitates the training of high-quality word vector models with gensim's implementation of fastText and Word2Vec algorithms, supporting both Skip-Gram (SG) and Continuous Bag of Words (CBOW) training architectures.
 
 
-### This will train word vectors for both fastText and word2vec using CBOW and SG: 
+## Dependencies
+Other than making sure `python=3.9` is installed, the script leverages the following Python libraries:
+- **gensim**: For training the word embedding models.
+- **pandas**: For efficient data manipulation and reading CSV files.
+- **numpy** : For working with arrays.
 
-* `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --SG 1 --typeEmbedding word2vec fastText`
+## Getting Started
+Before running the script, ensure your text data is formatted correctly:
 
-### This will train word vectors for fastText using SG:
+**Input File Format** : The script requires a CSV file with a specific column named 'Sentences', containing one sentence per row.
+To explore the available command-line options and how to use them, run:
 
-* ` python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --typeEmbedding fastText`
+```shell
+python train_word_vectors.py --help
+```
 
-    **OR**
+## Training Word Embeddings
+Below are examples demonstrating how to use the script for training word embeddings with different configurations.
 
+### Training with Both fastText and Word2Vec for SG and CBOW
+Train embeddings for both fastText and Word2Vec using both SG and CBOW architectures:
 
-* ` python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --CBOW 0 --typeEmbedding fastText
-Zulu_output_clean`
+```shell
+python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --SG 1 --typeEmbedding word2vec fastText
+```
 
-### This will train word vectors for fastText using CBOW:
+### Training fastText Embeddings with SG
 
-* `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --SG 0 --typeEmbedding word2vec 
-`
+```shell
+python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --typeEmbedding fastText
+```
 
-    **OR**
+#### Or, to explicitly disable CBOW:
+```shell
+python train_word_vectors.py --inFilePath English_all.csv --outFileName English --SG 1 --CBOW 0 --typeEmbedding fastText
+```
 
-* `python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --typeEmbedding word2vec
-`
+### Training Word2Vec Embeddings with CBOW
+```shell
+python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --SG 0 --typeEmbedding word2vec
+```
 
-### Also use to show more options:
+#### Or, specifying only CBOW without SG:
+```shell
+python train_word_vectors.py --inFilePath English_all.csv --outFileName English --CBOW 1 --typeEmbedding word2vec
+```
 
-* `python train_word_vectors.py --help`
+### Additional Options
+For a detailed list of all the command-line options, including setting hyperparameters for the embedding models:
+```shell
+python train_word_vectors.py --help
+```
 
-### Output files:
+###  Output Models
+Upon completion, the trained models are saved in respective directories based on the training algorithm used:
 
-#### Models that were trained can be found in the following directories:
-* `./fastText_models`
-* `./word2vec_models`
+- **fastText Models**: `./fastText_models`
+- **Word2Vec Models**: `./word2vec_models`
 
+### Example Output Files
+The output filenames contain the model type, training epochs, language (or descriptor from `--outFileName`), and model architecture, e.g.:
 
-#### Example of how such an output might look:
-* `./fastText_models/fastText_train_epochs_trained_10_Afrikaans_SG_embedding_size_300`
-* `./fastText_models/fastText_train_epochs_trained_10_Afrikaans_CBOW_embedding_size_300`
+`./fastText_models/<EMBEDDING_MODEL_NAME>`
+`./word2vec_models/<EMBEDDING_MODEL_NAME>`
 
+**Note**: The `--outFileName` parameter is included in the filename to easily identify the trained models.
 
-**Note:** The "--outFileName Afrikaans" is contained inside the filename, with a short description of training details.

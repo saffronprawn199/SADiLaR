@@ -1,4 +1,4 @@
-# Training Word Embeddings with fastText and Word2Vec
+**# Training Word Embeddings with fastText and Word2Vec
 
 Enhance your natural language processing (NLP) applications with custom-trained word embeddings using the `train_word_vectors.py` script. This script facilitates the training of high-quality word vector models with gensim's implementation of fastText and Word2Vec algorithms, supporting both Skip-Gram (SG) and Continuous Bag of Words (CBOW) training architectures.
 
@@ -68,5 +68,5 @@ The output filenames contain the model type, training epochs, language (or descr
 `./fastText_models/<EMBEDDING_MODEL_NAME>`
 `./word2vec_models/<EMBEDDING_MODEL_NAME>`
 
-**Note**: The `--outFileName` parameter is included in the filename to easily identify the trained models.
+**Note**: The `--outFileName` parameter is included in the filename to easily identify the trained models.**
 
