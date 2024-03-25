@@ -13,6 +13,7 @@ This Streamlit application offers an intuitive interface for training word embed
 
 ### Installation
 
+For installation to work as expect please insure you are running `python=3.9` on your local machine before creating the virtual environment.
 #### Create a virtual environment:
 
 ```bash

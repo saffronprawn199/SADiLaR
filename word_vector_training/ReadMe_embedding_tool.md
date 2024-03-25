@@ -69,4 +69,3 @@ The output filenames contain the model type, training epochs, language (or descr
 `./word2vec_models/<EMBEDDING_MODEL_NAME>`
 
 **Note**: The `--outFileName` parameter is included in the filename to easily identify the trained models.
-
