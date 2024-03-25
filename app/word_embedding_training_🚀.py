@@ -18,6 +18,15 @@ def setup_session_states():
         st.session_state["model_name"] = ""
 
 
+# Setup training folders for word embeddings
+def setup_word_vector_training_folders():
+    word2vec_model_path = "./word2vec_models/"
+    fastText_model_path = "./fastText_models/"
+
+    os.makedirs(word2vec_model_path, exist_ok=True)
+    os.makedirs(fastText_model_path, exist_ok=True)
+
+
 # Main page setup
 def main_page_setup():
     st.title("Word Embedding Training Tool")
@@ -28,7 +37,7 @@ def main_page_setup():
                   - After the model has finished training, it will be saved in a folder within your local app directory, organised by similarly named model type (i.e. fastText or word2vec).
                   - Please visit the "Visualise Page" after the training is complete to view your trained embeddings..
                     ''')
-    st.sidebar.success("Select a option above.")
+    st.sidebar.success("Select an option above.")
 
 
 # User input handling
@@ -344,6 +353,7 @@ def upload_file_and_train_model(
 def main():
     setup_session_states()
     set_page_config()
+    setup_word_vector_training_folders()
     main_page_setup()
     pretraining_selected, pretrained_model_path, pretrained_binary, model_selected = (
         finetune_existing_model()
