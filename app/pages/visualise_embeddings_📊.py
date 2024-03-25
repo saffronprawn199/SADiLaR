@@ -84,8 +84,10 @@ def display_search():
     search_for = [word.replace(" ", "") for word in string_of_words.split(",")]
     return search_for
 
+
 def show_word_similarity_score():
     pass
+
 
 # Check if directory model exists
 def check_directory_exists(directory_path):

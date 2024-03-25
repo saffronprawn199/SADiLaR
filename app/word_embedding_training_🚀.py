@@ -1,7 +1,7 @@
 # File: app.py
 import sys
-
 sys.path.insert(0, "../")
+
 import streamlit as st
 import os
 from word_vector_training.train_word_vectors import TrainWordVectors
