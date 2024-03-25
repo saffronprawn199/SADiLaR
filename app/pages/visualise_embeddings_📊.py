@@ -386,6 +386,16 @@ def check_words_vocab(model_path, word_list, select_model_type):
 
 # Streamlit app layout
 def main():
+    st.title("Word Embedding Visualisation Tool")
+    with st.expander("See Instruction"):
+        st.markdown(''' 
+                        - Choose your trained embedding model.
+                        - Select the words you would like to investigate by writing them as a comma-separated list (e.g., "cat, dog, car").
+                        - Wait for vocabulary check to complete. This make sure the embedding model has numeric representation for the word.
+                        - Choose whether you want to plot in 2D or 3D and select the dimensionality reduction technique you wish to use.
+                        - Name your plot and press "Visualise" to see it. 
+                    ''')
+
     select_model_type = display_model_selector()
     model_path = "./" + select_model_type + "_models"
     dir_exists = check_directory_exists(model_path)

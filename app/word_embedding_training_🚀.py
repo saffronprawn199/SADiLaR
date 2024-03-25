@@ -21,6 +21,13 @@ def setup_session_states():
 # Main page setup
 def main_page_setup():
     st.title("Word Embedding Training Tool")
+    with st.expander("See Instruction"):
+         st.markdown('''
+                  - Create a CSV file with a column named `Sentences`. Ensure that documents are added as rows in this CSV file, not as new columns.
+                  - Set up the model type and training configuration, including the model's hyperparameters, using the sidebar on the left side of your screen. Name your model and click "Train word embeddings". 
+                  - After the model has finished training, it will be saved in a folder within your local app directory, organised by similarly named model type (i.e. fastText or word2vec).
+                  - Please visit the "Visualise Page" after the training is complete to view your trained embeddings..
+                    ''')
     st.sidebar.success("Select a option above.")
 
 
@@ -76,6 +83,7 @@ def model_selector(folder_path, sidebar_key="model_selector"):
     return selected_model_path, selected_binary_file
 
 
+# Setup further fine-tuning of pretrained models.
 def finetune_existing_model():
     os.makedirs("./pretrained_embeddings", exist_ok=True)
     os.makedirs("./pretrained_embeddings/word2vec_models", exist_ok=True)
@@ -216,6 +224,7 @@ def sidebar_config(pretraining_selected, model_selected):
     )
 
     return hyperparameters_arguments
+
 
 # Train word embeddings
 def train_word_vectors(
