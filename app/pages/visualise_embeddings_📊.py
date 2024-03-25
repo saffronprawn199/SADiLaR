@@ -366,9 +366,9 @@ def load_embedding_model(model_path, select_model_type):
         embedding_model = Word2Vec.load(model_path)
     elif select_model_type == 'fastText':
         embedding_model = FT_gensim.load(model_path)
-    logger.info("Load time: ", time.time() - t)
+    logger.info(f"Load time:  {time.time() - t}")
     wv = embedding_model.wv
-    logger.info(f"Vocab length {len(wv)}")
+    logger.info(f"Vocab size: {len(wv)}")
     return wv
 
 

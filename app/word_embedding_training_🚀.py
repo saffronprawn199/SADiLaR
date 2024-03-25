@@ -310,7 +310,7 @@ def upload_file_and_train_model(
     pretrained_model_path,
     pretrained_is_binary,
 ):
-    uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
     if uploaded_file is not None:
         if uploaded_file.name.endswith(".csv"):
             submit_model_name = handle_user_input()
